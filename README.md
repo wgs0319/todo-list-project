@@ -79,33 +79,42 @@ Build Tool
  - MariaDB 10 이상
  - Gadle
 2. 데이터베이스 설정
- - CREATE DATABASE todolist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ ```sql
+CREATE DATABASE todolist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 3. application.yml 설정
-```yml
+```bash
+# application-dev.yml.example을 복사
+cp src/main/resources/application-dev.yml.example src/main/resources/application-dev.yml
+```
+```yaml
 spring:
-  application:
-    name: List
+   application:
+      name: List
 
-  datasource:
-    url: jdbc:mariadb://localhost:3307/todolist?characterEncoding=utf8&useSSL=false
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: your_username
-    password: your_password
+   datasource:
+      url: jdbc:mariadb://localhost:3307/todolist?characterEncoding=utf8&useSSL=false
+      driver-class-name: org.mariadb.jdbc.Driver
+      username: root
+      password: 1234
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
+   jpa:
       hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MariaDBDialect
+         ddl-auto: update
+      show-sql: true
+      properties:
+         hibernate:
+            format_sql: true
+            dialect: org.hibernate.dialect.MariaDBDialect
 ```
 4. 실행
- - ./gradlew bootRun
+```bash
+./gradlew bootRun
+```
 5. 접속
- - http://localhost:8080
-
+```
+http://localhost:8080
+```
 ## 주요 화면
 대시보드
  - 전체 통계 및 차트
