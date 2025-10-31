@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>멤버 역할 변경</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* 네비게이션 */
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #333;
+        }
+        .logout-link {
+            color: #f44336 !important;
+        }
+
+        .member-info {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .member-info h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        .member-info p {
+            margin: 8px 0;
+            color: #666;
+        }
+        .member-info strong {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            width: 48%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #808080;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #666;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .role-ADMIN {
+            background-color: #f44336;
+            color: white;
+        }
+        .role-MEMBER {
+            background-color: #2196F3;
+            color: white;
+        }
+        .role-VIEWER {
+            background-color: #9e9e9e;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 -->
+<div class="nav">
+  <a href="/">🏠 대시보드</a>
+  <a href="/users/list">👥 사용자 관리</a>
+  <a href="/projects/list">📁 프로젝트 관리</a>
+  <a href="/tasks/list">✅ 작업 관리</a>
+
+  <div class="user-info">
+    <th:block th:if="${session.loginUser}">
+      <span>👤 <strong th:text="${session.loginUser.name}"></strong>님</span>
+      <a href="/logout" class="logout-link">로그아웃</a>
+    </th:block>
+  </div>
+</div>
+
+<h1>멤버 역할 변경</h1>
+
+<!-- 멤버 정보 -->
+<div class="member-info">
+  <h3>👤 멤버 정보</h3>
+  <p><strong>프로젝트:</strong> <span th:text="${member.projectTitle}"></span></p>
+  <p><strong>사용자:</strong> <span th:text="${member.userName}"></span></p>
+  <p><strong>이메일:</strong> <span th:text="${member.userEmail}"></span></p>
+  <p>
+    <strong>현재 역할:</strong>
+    <span th:class="'role-badge role-' + ${member.role}"
+          th:text="${member.role}"></span>
+  </p>
+</div>
+
+<form th:action="@{/project-members/{id}/edit(id=${member.id})}" method="post">
+  <div th:if="${error}" class="error">
+    <span th:text="${error}"></span>
+  </div>
+
+  <div class="form-group">
+    <label for="role">새 역할 선택 *</label>
+    <select id="role" name="role" required>
+      <option th:each="role : ${roles}"
+              th:value="${role}"
+              th:text="${role}"
+              th:selected="${role == member.role}">
+      </option>
+    </select>
+    <small style="color: #666; display: block; margin-top: 5px;">
+      • ADMIN: 프로젝트 관리 및 멤버 관리 가능<br>
+      • MEMBER: 작업 생성/수정 가능<br>
+      • VIEWER: 읽기만 가능
+    </small>
+  </div>
+
+  <button type="submit" class="btn-primary">역할 변경</button>
+  <button type="button" class="btn-secondary"
+          th:onclick="'location.href=\'/project-members/list?projectId=' + ${member.projectId} + '\''">
+    취소
+  </button>
+</form>
+</body>
+</html>

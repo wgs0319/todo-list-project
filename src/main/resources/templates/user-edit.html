@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>사용자 정보 수정</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* 네비게이션 */
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #333;
+        }
+        .logout-link {
+            color: #f44336 !important;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #808080;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .info {
+            background-color: #e7f3fe;
+            padding: 10px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 -->
+<div class="nav">
+  <a href="/">🏠 대시보드</a>
+  <a href="/users/list">👥 사용자 관리</a>
+  <a href="/projects/list">📁 프로젝트 관리</a>
+  <a href="/tasks/list">✅ 작업 관리</a>
+
+  <div class="user-info">
+            <span th:if="${session.loginUser}">
+                👤 <strong th:text="${session.loginUser.name}"></strong>님
+            </span>
+    <a href="/logout" class="logout-link">로그아웃</a>
+  </div>
+</div>
+
+<h1>사용자 정보 수정</h1>
+
+<div class="info">
+  <strong>아이디:</strong> <span th:text="${user.id}"></span>
+</div>
+
+<form th:action="@{/users/{id}/edit(id=${user.id})}" method="post">
+  <div class="form-group">
+    <label for="email">이메일</label>
+    <input type="email" id="email" name="email" th:value="${user.email}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="name">이름</label>
+    <input type="text" id="name" name="name" th:value="${user.name}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="password">새 비밀번호 (변경하지 않으려면 비워두세요)</label>
+    <input type="password" id="password" name="password" minlength="8">
+  </div>
+
+  <button type="submit" class="btn-primary">수정하기</button>
+  <button type="button" class="btn-secondary" onclick="location.href='/users/list'">취소</button>
+</form>
+
+<p th:if="${error}" class="error" th:text="${error}"></p>
+</body>
+</html>

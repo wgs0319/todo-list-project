@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>작업 상세</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* 네비게이션 */
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #333;
+        }
+        .logout-link {
+            color: #f44336 !important;
+        }
+
+        .info-group {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .info-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .info-group p {
+            margin: 0;
+            color: #333;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #808080;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .actions {
+            margin-top: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-ToDO {
+            background-color: #ffc107;
+            color: white;
+        }
+        .status-IN_PROGRESS {
+            background-color: #2196F3;
+            color: white;
+        }
+        .status-DONE {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .priority-HIGH {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .priority-MEDIUM {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .priority-LOW {
+            color: #9e9e9e;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        /* 댓글 섹션 */
+        .comments-section {
+            margin-top: 40px;
+        }
+        .comments-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* 댓글 작성 폼 */
+        .comment-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 80px;
+            resize: vertical;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .comment-form button {
+            margin-top: 10px;
+            padding: 10px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .comment-form button:hover {
+            background-color: #45a049;
+        }
+
+        /* 댓글 리스트 */
+        .comment-list {
+            margin-top: 20px;
+        }
+        .comment-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .comment-author {
+            font-weight: bold;
+            color: #333;
+        }
+        .comment-date {
+            color: #999;
+            font-size: 12px;
+        }
+        .comment-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .comment-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .comment-actions a,
+        .comment-actions button {
+            font-size: 12px;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+        }
+        .comment-actions a:hover,
+        .comment-actions button:hover {
+            background: #f5f5f5;
+        }
+        .comment-actions .delete-btn {
+            color: #f44336;
+            border-color: #f44336;
+        }
+        .empty-comments {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 -->
+<div class="nav">
+  <a href="/">🏠 대시보드</a>
+  <a href="/users/list">👥 사용자 관리</a>
+  <a href="/projects/list">📁 프로젝트 관리</a>
+  <a href="/tasks/list">✅ 작업 관리</a>
+
+  <div class="user-info">
+    <th:block th:if="${session.loginUser}">
+      <span>👤 <strong th:text="${session.loginUser.name}"></strong>님</span>
+      <a href="/logout" class="logout-link">로그아웃</a>
+    </th:block>
+  </div>
+</div>
+
+<h1>작업 상세 정보</h1>
+
+<div class="info-group">
+  <label>ID:</label>
+  <p th:text="${task.id}"></p>
+</div>
+
+<div class="info-group">
+  <label>프로젝트:</label>
+  <p>
+    <a th:href="@{/projects/{id}(id=${task.projectId})}"
+       th:text="${task.projectTitle}"
+       style="color: #2196F3; text-decoration: none;">
+    </a>
+  </p>
+</div>
+
+<div class="info-group">
+  <label>제목:</label>
+  <p th:text="${task.title}"></p>
+</div>
+
+<div class="info-group">
+  <label>설명:</label>
+  <p th:text="${task.description != null ? task.description : '설명 없음'}"></p>
+</div>
+
+<div class="info-group">
+  <label>상태:</label>
+  <p>
+            <span th:class="'status-badge status-' + ${task.status}"
+                  th:text="${task.status}"></span>
+  </p>
+</div>
+
+<div class="info-group">
+  <label>우선순위:</label>
+  <p>
+            <span th:class="'priority-' + ${task.priority}"
+                  th:text="${task.priority}"></span>
+  </p>
+</div>
+
+<div class="info-group">
+  <label>담당자:</label>
+  <p th:text="${task.assigneeName != null ? task.assigneeName : '미할당'}"></p>
+</div>
+
+<div class="info-group">
+  <label>마감일:</label>
+  <p th:text="${task.dueDate != null ? task.dueDate : '설정 안 됨'}"></p>
+</div>
+
+<div class="info-group">
+  <label>생성일:</label>
+  <p th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
+</div>
+
+<div class="info-group">
+  <label>수정일:</label>
+  <p th:text="${#temporals.format(task.updatedAt, 'yyyy-MM-dd HH:mm')}"></p>
+</div>
+
+<div class="actions">
+  <a href="#" onclick="checkEditPermission(event)" class="btn btn-primary">수정</a>
+
+  <form id="deleteForm" th:action="@{/tasks/{id}/delete(id=${task.id})}" method="post" style="display: inline;"
+        onsubmit="return checkDeletePermission(event);">
+    <button type="submit" class="btn btn-danger">삭제</button>
+  </form>
+
+  <a th:href="@{/tasks/list(projectId=${task.projectId})}" class="btn btn-secondary">목록으로</a>
+</div>
+
+<!-- 댓글 섹션 -->
+<div class="comments-section">
+  <h2>💬 댓글</h2>
+
+  <!-- 댓글 작성 폼 -->
+  <div class="comment-form">
+    <form th:action="@{/comments/create}" method="post">
+      <input type="hidden" name="taskId" th:value="${task.id}">
+      <textarea name="content"
+                placeholder="댓글을 입력하세요..."
+                required></textarea>
+      <button type="submit">댓글 작성</button>
+    </form>
+  </div>
+
+  <!-- 댓글 목록 -->
+  <div class="comment-list">
+    <div th:if="${comments != null and !comments.isEmpty()}">
+      <div th:each="comment : ${comments}" class="comment-item">
+        <div class="comment-header">
+          <span class="comment-author" th:text="${comment.authorName}">작성자</span>
+          <span class="comment-date"
+                th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">
+                        </span>
+        </div>
+        <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
+
+        <!-- 본인 댓글만 수정/삭제 가능 -->
+        <div class="comment-actions"
+             th:if="${session.loginUser != null and session.loginUser.id == comment.authorId}">
+          <a th:href="@{/comments/{id}/edit(id=${comment.id})}">수정</a>
+          <form th:action="@{/comments/{id}/delete(id=${comment.id})}"
+                method="post"
+                style="display: inline; margin: 0;"
+                onsubmit="return confirm('정말 삭제하시겠습니까?');">
+            <input type="hidden" name="taskId" th:value="${task.id}">
+            <button type="submit" class="delete-btn">삭제</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div th:if="${comments == null or comments.isEmpty()}" class="empty-comments">
+      아직 댓글이 없습니다. 첫 댓글을 작성해보세요!
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  // Thymeleaf로부터 값 받기
+  const loginUser = /*[[${session.loginUser}]]*/ null;
+  const taskAssigneeId = /*[[${task.assigneeId}]]*/ null;
+  const taskId = /*[[${task.id}]]*/ null;
+
+  // 권한 확인 함수
+  function hasPermission() {
+    if (!loginUser) {
+      return false;
+    }
+
+    // VIEWER는 권한 없음
+    if (loginUser.role === 'VIEWER') {
+      return false;
+    }
+
+    // ADMIN이거나 담당자인 경우 권한 있음
+    return loginUser.role === 'ADMIN' || loginUser.id === taskAssigneeId;
+  }
+
+  // 수정 버튼 클릭 시
+  function checkEditPermission(event) {
+    event.preventDefault();
+
+    if (!loginUser) {
+      alert('로그인이 필요합니다.');
+      return false;
+    }
+
+    if (loginUser.role === 'VIEWER') {
+      alert('조회 권한만 있습니다.');
+      return false;
+    }
+
+    if (!hasPermission()) {
+      alert('담당자 또는 관리자만 수정할 수 있습니다.');
+      return false;
+    }
+
+    // 권한이 있으면 수정 페이지로 이동
+    window.location.href = '/tasks/' + taskId + '/edit';
+    return false;
+  }
+
+  // 삭제 버튼 클릭 시
+  function checkDeletePermission(event) {
+    if (!loginUser) {
+      event.preventDefault();
+      alert('로그인이 필요합니다.');
+      return false;
+    }
+
+    if (loginUser.role === 'VIEWER') {
+      event.preventDefault();
+      alert('조회 권한만 있습니다.');
+      return false;
+    }
+
+    if (!hasPermission()) {
+      event.preventDefault();
+      alert('담당자 또는 관리자만 삭제할 수 있습니다.');
+      return false;
+    }
+
+    // 권한이 있으면 삭제 확인
+    return confirm('정말 삭제하시겠습니까?');
+  }
+  /*]]>*/
+</script>
+</body>
+</html>

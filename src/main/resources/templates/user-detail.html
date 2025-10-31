@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>사용자 상세 정보</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* 네비게이션 */
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #333;
+        }
+        .logout-link {
+            color: #f44336 !important;
+        }
+
+        .info-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .info-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #808080;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 -->
+<div class="nav">
+  <a href="/">🏠 대시보드</a>
+  <a href="/users/list">👥 사용자 관리</a>
+  <a href="/projects/list">📁 프로젝트 관리</a>
+  <a href="/tasks/list">✅ 작업 관리</a>
+
+  <div class="user-info">
+            <span th:if="${session.loginUser}">
+                👤 <strong th:text="${session.loginUser.name}"></strong>님
+            </span>
+    <a href="/logout" class="logout-link">로그아웃</a>
+  </div>
+</div>
+
+<h1>사용자 상세 정보</h1>
+
+<div class="info-group">
+  <label>아이디:</label>
+  <p th:text="${user.id}"></p>
+</div>
+
+<div class="info-group">
+  <label>이름:</label>
+  <p th:text="${user.name}"></p>
+</div>
+
+<div class="info-group">
+  <label>이메일:</label>
+  <p th:text="${user.email}"></p>
+</div>
+
+<div class="info-group">
+  <label>가입일:</label>
+  <p th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
+</div>
+
+<div class="actions">
+  <a th:if="${session.loginUser != null &&
+               (session.loginUser.role.name() == 'ADMIN' ||
+                session.loginUser.id == task.assigneeId)}"
+     th:href="@{/tasks/{id}/edit(id=${task.id})}"
+     class="btn btn-primary">수정</a>
+
+  <form th:if="${session.loginUser != null &&
+                  (session.loginUser.role.name() == 'ADMIN' ||
+                   session.loginUser.id == task.assigneeId)}"
+        th:action="@{/tasks/{id}/delete(id=${task.id})}"
+        method="post"
+        style="display: inline;"
+        onsubmit="return confirm('정말 삭제하시겠습니까?');">
+    <button type="submit" class="btn btn-danger">삭제</button>
+  </form>
+
+  <a th:href="@{/tasks/list(projectId=${task.projectId})}" class="btn btn-secondary">목록으로</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: List
+
+  profiles:
+    active: dev  # 개발: dev, 운영: prod

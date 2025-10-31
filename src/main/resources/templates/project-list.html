@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            margin-right: 15px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* 검색 섹션 */
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+        .search-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-form button {
+            padding: 10px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .search-form button:hover {
+            background-color: #45a049;
+        }
+        .btn-reset {
+            background-color: #808080 !important;
+        }
+        .btn-reset:hover {
+            background-color: #666 !important;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .search-result {
+            background-color: #e7f3fe;
+            padding: 10px 15px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="nav">
+    <a href="/">홈</a>
+    <a href="/users/list">사용자 목록</a>
+    <a href="/projects/list">프로젝트 목록</a>
+    <a href="/tasks/list">작업 목록</a>
+
+    <!-- 로그인 정보 -->
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+        <span th:if="${session.loginUser}" style="color: #333;">
+            👤 <strong th:text="${session.loginUser.name}"></strong>님
+        </span>
+        <a href="/logout" style="color: #f44336;">로그아웃</a>
+    </div>
+</div>
+
+<!-- 검색 섹션 -->
+<div class="search-section">
+    <h3>🔍 프로젝트 검색</h3>
+    <form th:action="@{/projects/list}" method="get" class="search-form">
+        <input type="text"
+               name="keyword"
+               placeholder="프로젝트 제목을 입력하세요"
+               th:value="${selectedKeyword}">
+        <button type="submit">검색</button>
+        <a href="/projects/list">
+            <button type="button" class="btn-reset">초기화</button>
+        </a>
+    </form>
+</div>
+
+<!-- 검색 결과 표시 -->
+<div th:if="${selectedKeyword != null && !selectedKeyword.isEmpty()}" class="search-result">
+    <strong>검색어:</strong> "<span th:text="${selectedKeyword}"></span>"
+    - <span th:text="${#lists.size(projects)}"></span>개의 결과를 찾았습니다.
+</div>
+
+<div class="header">
+    <h1>프로젝트 목록</h1>
+    <a th:if="${session.loginUser != null && session.loginUser.role.name() != 'VIEWER'}"
+       href="/projects/create"
+       class="btn">새 프로젝트 만들기</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>제목</th>
+        <th>설명</th>
+        <th>생성일</th>
+        <th>작업</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="project : ${projects}">
+        <td th:text="${project.id}"></td>
+        <td th:text="${project.title}"></td>
+        <td th:text="${project.description}"></td>
+        <td th:text="${#temporals.format(project.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+        <td>
+            <a th:href="@{/projects/{id}(id=${project.id})}" style="margin-right: 5px;">상세</a>
+            <a th:href="@{/projects/{id}/edit(id=${project.id})}" style="margin-right: 5px;">수정</a>
+            <a th:href="@{/tasks/list(projectId=${project.id})}" style="margin-right: 5px; color: #2196F3;">작업보기</a>
+            <form th:action="@{/projects/{id}/delete(id=${project.id})}" method="post"
+                  style="display: inline;"
+                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                <button type="submit" style="background: none; border: none; color: #f44336; cursor: pointer; text-decoration: underline;">삭제</button>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(projects)}">
+        <td colspan="5" style="text-align: center;">
+                    <span th:if="${selectedKeyword != null && !selectedKeyword.isEmpty()}">
+                        검색 결과가 없습니다.
+                    </span>
+            <span th:unless="${selectedKeyword != null && !selectedKeyword.isEmpty()}">
+                        등록된 프로젝트가 없습니다.
+                    </span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

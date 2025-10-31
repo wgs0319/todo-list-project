@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>작업 목록</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            margin-right: 15px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* 통계 카드 */
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .stat-card.todo .number { color: #ffc107; }
+        .stat-card.in-progress .number { color: #2196F3; }
+        .stat-card.done .number { color: #4CAF50; }
+
+        /* 검색/필터 폼 */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .filter-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .filter-form input,
+        .filter-form select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #808080;
+        }
+        .btn-secondary:hover {
+            background-color: #666;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-ToDO {
+            background-color: #ffc107;
+            color: white;
+        }
+        .status-IN_PROGRESS {
+            background-color: #2196F3;
+            color: white;
+        }
+        .status-DONE {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .priority-HIGH {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .priority-MEDIUM {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .priority-LOW {
+            color: #9e9e9e;
+        }
+        .project-title {
+            background-color: #e7f3fe;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 20px;
+        }
+        .checkbox-cell {
+            text-align: center;
+            width: 50px;
+        }
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .task-row.completed {
+            opacity: 0.6;
+            background-color: #f0f0f0;
+        }
+        .task-row.completed td {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+<div class="nav">
+  <a href="/">홈</a>
+  <a href="/users/list">사용자 목록</a>
+  <a href="/projects/list">프로젝트 목록</a>
+  <a href="/tasks/list">작업 목록</a>
+
+  <!-- 로그인 정보 -->
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+        <span th:if="${session.loginUser}" style="color: #333;">
+            👤 <strong th:text="${session.loginUser.name}"></strong>님
+        </span>
+    <a href="/logout" style="color: #f44336;">로그아웃</a>
+  </div>
+</div>
+
+<!-- 프로젝트 정보 -->
+<div th:if="${project}" class="project-title">
+  <h2 th:text="'프로젝트: ' + ${project.title}"></h2>
+  <p th:text="${project.description}"></p>
+</div>
+
+<!-- 통계 (프로젝트별로만 표시) -->
+<div th:if="${statistics}" class="statistics">
+  <div class="stat-card">
+    <h3>전체 작업</h3>
+    <div class="number" th:text="${statistics.totalTasks}"></div>
+  </div>
+  <div class="stat-card todo">
+    <h3>대기 중</h3>
+    <div class="number" th:text="${statistics.todoTasks}"></div>
+  </div>
+  <div class="stat-card in-progress">
+    <h3>진행 중</h3>
+    <div class="number" th:text="${statistics.inProgressTasks}"></div>
+  </div>
+  <div class="stat-card done">
+    <h3>완료</h3>
+    <div class="number" th:text="${statistics.doneTasks}"></div>
+  </div>
+  <div class="stat-card">
+    <h3>완료율</h3>
+    <div class="number" th:text="${#numbers.formatDecimal(statistics.completionRate, 1, 1)} + '%'"></div>
+  </div>
+</div>
+
+<div style="margin-bottom: 20px; display: flex; gap: 10px;">
+  <a th:href="@{/tasks/list(assigneeId=${session.loginUser?.id})}"
+     class="btn"
+     style="background-color: #2196F3;">
+    🙋 내 작업만 보기
+  </a>
+  <a th:href="@{/tasks/list(status='IN_PROGRESS')}"
+     class="btn"
+     style="background-color: #ff9800;">
+    🔄 진행 중인 작업
+  </a>
+  <a th:href="@{/tasks/list(status='DONE')}"
+     class="btn"
+     style="background-color: #4CAF50;">
+    ✅ 완료된 작업
+  </a>
+</div>
+
+<!-- 검색/필터 섹션 -->
+<div class="filter-section">
+  <h3>🔍 검색 및 필터</h3>
+  <form th:action="@{/tasks/list}" method="get">
+    <div class="filter-form">
+      <div>
+        <label>프로젝트</label>
+        <select name="projectId">
+          <option value="">전체 프로젝트</option>
+          <option th:each="proj : ${projects}"
+                  th:value="${proj.id}"
+                  th:text="${proj.title}"
+                  th:selected="${proj.id == selectedProjectId}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label>상태</label>
+        <select name="status">
+          <option value="">전체 상태</option>
+          <option th:each="st : ${statuses}"
+                  th:value="${st}"
+                  th:text="${st}"
+                  th:selected="${st.toString() == selectedStatus}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label>우선순위</label>
+        <select name="priority">
+          <option value="">전체 우선순위</option>
+          <option th:each="pri : ${priorities}"
+                  th:value="${pri}"
+                  th:text="${pri}"
+                  th:selected="${pri.toString() == selectedPriority}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label>담당자</label>
+        <select name="assigneeId">
+          <option value="">전체 담당자</option>
+          <option th:if="${session.loginUser != null}"
+                  th:value="${session.loginUser.id}"
+                  th:text="'🙋 내 작업만 보기'"
+                  th:selected="${session.loginUser.id == selectedAssigneeId}">
+          </option>
+          <option disabled>────────</option>
+          <option th:each="user : ${users}"
+                  th:value="${user.id}"
+                  th:text="${user.name}"
+                  th:selected="${user.id == selectedAssigneeId}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label>키워드 검색</label>
+        <input type="text" name="keyword" placeholder="제목 검색" th:value="${selectedKeyword}">
+      </div>
+    </div>
+
+    <div class="filter-buttons">
+      <button type="submit" class="btn">검색</button>
+      <a href="/tasks/list" class="btn btn-secondary">초기화</a>
+    </div>
+  </form>
+</div>
+
+<div class="header">
+  <h1>작업 목록</h1>
+  <div>
+    <a th:if="${session.loginUser != null && session.loginUser.role.name() != 'VIEWER'}"
+       th:href="@{/tasks/create(projectId=${selectedProjectId})}"
+       class="btn">새 작업 만들기</a>
+  </div>
+</div>
+
+<table>
+  <thead>
+  <tr>
+    <th style="width: 50px;">완료</th>
+    <th>ID</th>
+    <th>제목</th>
+    <th>프로젝트</th>
+    <th>담당자</th>
+    <th>상태</th>
+    <th>우선순위</th>
+    <th>마감일</th>
+    <th>작업</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="task : ${tasks}"
+      th:classappend="${task.status.name() == 'DONE'} ? 'task-row completed' : 'task-row'">
+    <td class="checkbox-cell">
+      <input th:if="${session.loginUser != null && session.loginUser.role.name() != 'VIEWER'}"
+             type="checkbox"
+             class="task-checkbox"
+             th:data-task-id="${task.id}"
+             th:checked="${task.status.name() == 'DONE'}"
+             onclick="toggleTask(this)">
+      <span th:if="${session.loginUser == null || session.loginUser.role.name() == 'VIEWER'}">
+        <input type="checkbox"
+               th:checked="${task.status.name() == 'DONE'}"
+               disabled>
+    </span>
+    </td>
+    <td th:text="${task.id}"></td>
+    <td>
+      <span th:text="${task.title}"></span>
+      <span th:if="${task.commentCount > 0}"
+            style="color: #2196F3; font-size: 12px; margin-left: 5px;">
+            (<span th:text="${task.commentCount}"></span>)
+      </span>
+    </td>
+    <td th:text="${task.projectTitle}"></td>
+    <td th:text="${task.assigneeName != null ? task.assigneeName : '미할당'}"></td>
+    <td>
+                    <span th:class="'status-badge status-' + ${task.status}"
+                          th:text="${task.status}"></span>
+    </td>
+    <td>
+                    <span th:class="'priority-' + ${task.priority}"
+                          th:text="${task.priority}"></span>
+    </td>
+    <td th:text="${task.dueDate != null ? task.dueDate : '-'}"></td>
+    <td>
+      <a th:href="@{/tasks/{id}(id=${task.id})}" style="margin-right: 5px;">상세</a>
+      <a th:if="${session.loginUser != null &&
+               session.loginUser.role.name() != 'VIEWER' &&
+               (session.loginUser.role.name() == 'ADMIN' ||
+                session.loginUser.id == task.assigneeId)}"
+         th:href="@{/tasks/{id}/edit(id=${task.id})}"
+         style="margin-right: 5px;">수정</a>
+      <form th:if="${session.loginUser != null &&
+                  session.loginUser.role.name() != 'VIEWER' &&
+                  (session.loginUser.role.name() == 'ADMIN' ||
+                   session.loginUser.id == task.assigneeId)}"
+            th:action="@{/tasks/{id}/delete(id=${task.id})}"
+            method="post"
+            style="display: inline;"
+            onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        <button type="submit"
+                style="background: none; border: none; color: #f44336; cursor: pointer; text-decoration: underline;">
+          삭제
+        </button>
+      </form>
+    </td>
+  </tr>
+  <tr th:if="${#lists.isEmpty(tasks)}">
+    <td colspan="8" style="text-align: center;">검색 결과가 없습니다.</td>
+  </tr>
+  </tbody>
+</table>
+
+<script>
+function toggleTask(checkbox) {
+    const taskId = checkbox.dataset.taskId;
+    const row = checkbox.closest('tr');
+
+    fetch(`/tasks/${taskId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.text())
+    .then(data => {
+        if (data === 'success') {
+            location.reload();
+        } else {
+            // 에러 메시지 표시
+            const errorMsg = data.replace('error: ', '');
+            alert(errorMsg);
+            checkbox.checked = !checkbox.checked;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('오류가 발생했습니다.');
+        checkbox.checked = !checkbox.checked;
+    });
+}
+</script>
+
+</body>
+</html>

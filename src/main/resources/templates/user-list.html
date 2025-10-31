@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>사용자 목록</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* 네비게이션 */
+        .nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #333;
+        }
+        .logout-link {
+            color: #f44336 !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        /* 역할 배지 */
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .role-ADMIN {
+            background-color: #f44336;
+            color: white;
+        }
+        .role-MEMBER {
+            background-color: #2196F3;
+            color: white;
+        }
+        .role-VIEWER {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+        /* 역할 변경 폼 */
+        .role-change-form {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .role-change-form select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .role-change-form button {
+            padding: 5px 10px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .role-change-form button:hover {
+            background-color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+<!-- 네비게이션 추가 -->
+<div class="nav">
+  <a href="/">🏠 대시보드</a>
+  <a href="/users/list">👥 사용자 관리</a>
+  <a href="/projects/list">📁 프로젝트 관리</a>
+  <a href="/tasks/list">✅ 작업 관리</a>
+
+  <!-- 로그인 정보 -->
+  <div class="user-info">
+            <span th:if="${session.loginUser}">
+                👤 <strong th:text="${session.loginUser.name}"></strong>님
+            </span>
+    <a href="/logout" class="logout-link">로그아웃</a>
+  </div>
+</div>
+
+<h1>사용자 목록</h1>
+
+<a href="/users/signup" class="btn">새 사용자 추가</a>
+
+<table>
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>이름</th>
+    <th>이메일</th>
+    <th>가입일</th>
+    <th>작업</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="user : ${users}">
+    <td th:text="${user.id}"></td>
+    <td th:text="${user.name}"></td>
+    <td th:text="${user.email}"></td>
+    <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+    <td>
+      <!-- 역할 표시 -->
+      <span th:class="'role-badge role-' + ${user.role}"
+            th:text="${user.role}"></span>
+
+      <!-- 관리자만 역할 변경 가능 -->
+      <div th:if="${session.loginUser != null &&
+             session.loginUser.role.name() == 'ADMIN' &&
+             session.loginUser.id != user.id}"
+           style="margin-top: 5px;">
+        <form th:action="@{/users/{id}/change-role(id=${user.id})}"
+              method="post"
+              class="role-change-form">
+          <select name="role">
+            <option th:each="roleOption : ${T(com.ToDo.domain.Role).values()}"
+                    th:value="${roleOption}"
+                    th:text="${roleOption}"
+                    th:selected="${roleOption == user.role}">
+            </option>
+          </select>
+          <button type="submit">변경</button>
+        </form>
+      </div>
+    </td>
+    <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+    <td>
+      <a th:href="@{/users/{id}(id=${user.id})}" style="margin-right: 5px;">상세</a>
+      <a th:href="@{/users/{id}/edit(id=${user.id})}" style="margin-right: 5px;">수정</a>
+      <form th:action="@{/users/{id}/delete(id=${user.id})}" method="post"
+            style="display: inline;"
+            onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        <button type="submit" style="background: none; border: none; color: #f44336; cursor: pointer; text-decoration: underline;">삭제</button>
+      </form>
+    </td>
+  </tr>
+  <tr th:if="${#lists.isEmpty(users)}">
+    <td colspan="5" style="text-align: center;">등록된 사용자가 없습니다.</td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>
