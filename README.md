@@ -95,8 +95,8 @@ spring:
    datasource:
       url: jdbc:mariadb://localhost:3307/todolist?characterEncoding=utf8&useSSL=false
       driver-class-name: org.mariadb.jdbc.Driver
-      username: root
-      password: 1234
+      username: your_username # 본인의 DB 사용자명으로 변경
+      password: your_password # 본인의 DB 비밀번호로 변경
 
    jpa:
       hibernate:
@@ -206,7 +206,7 @@ return taskRepository.findAll().stream()
 ## 개발자
  - 이름: 원종성
  - Email: wgs96@naver.com
- - GitHub: 
+ - GitHub: https://github.com/wgs0319/todo-list-project
 
 ## 라이센스
 This project is licensed under the MIT License.
